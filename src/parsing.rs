@@ -111,13 +111,9 @@ fn parse_expr(tokens : &mut VecDeque<Token>,  min_prec: i8) -> Option<NodeExpr> 
     let mut lhs = NodeExpr::Term(term_option);
 
     while let Some(next) = tokens.front()  {
-
         if !is_binary_operator(next) || binary_precendence(next) < min_prec  {
-            println!("break {:?}, min_pre:{}", next, min_prec);
             break;
         }
-
-        println!("continue {:?}, min_pre:{}", next, min_prec);
         let prec = binary_precendence(next);
         let operator = tokens.pop_front().unwrap();
         let rhs = parse_expr(tokens, prec + 1).expect("Rhs has to be provided");
