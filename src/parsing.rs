@@ -9,17 +9,41 @@ pub struct NodeRoot {
    pub stmts: Vec<NodeStmt>
 }
 
+
+#[derive(Debug)]
+pub struct NodeScope(pub Vec<NodeStmt>);
+
 #[derive(Debug)]
 pub enum NodeStmt {
     Let{ expr: NodeExpr, ident: Token },
     Exit { expr:NodeExpr },
+    Scope { scope: NodeScope },
+    If {
+        expr: NodeExpr,
+        scope: NodeScope,
+        chain: Option<NodeElse>
+    },
+    ReAssign{ expr: NodeExpr, ident: Token},
+
 }
+
+#[derive(Debug)]
+pub enum NodeElse {
+    ElseIf {
+        expr: NodeExpr,
+        scope: NodeScope,
+        chain: Box<Option<NodeElse>>,
+    },
+    Else(NodeScope),
+}
+
 
 #[derive(Debug)]
 pub enum NodeExpr {
    BinaryExpr(Box<NodeBiExpr>),
    Term(NodeTermExpr),
 }
+
 #[derive(Debug)]
 pub enum NodeTermExpr {
    IntLiteral(String),
@@ -46,63 +70,123 @@ struct Parser {
 
 impl Parser {
 
-    fn parse(&mut self,) -> NodeRoot {
+    fn peek_expect(&self, offset: usize, token: Token) ->bool {
+        if let Some(found) =  self.tokens.get(offset) {
+            return *found == token;
+        }
+        false
+    }
+    
+    fn expect(&mut self ,token: Token) -> Token {
+        if let Some(found) = self.tokens.pop_front()  {
+            if found != token {
+                panic!("Expected {:?} found {:?}", token, found);
+            }
+            return found;
+        }
+        panic!("Expected {:?} found nothing", token);
+    }
+
+    fn expect_expr(&mut self) -> NodeExpr {
+        if let Some(expr) = parse_expr(&mut self.tokens, 1) {
+            return expr;
+        } 
+         panic!("Expression Parsing Failed {:?}", self.tokens);
+    }
+
+}
+
+impl Parser {
+
+    fn parse_else(&mut self) -> Option<NodeElse> {
+        while let Some(token) = self.tokens.front() {
+            match token {
+                Token::ElseIf => {
+                    self.tokens.pop_front();
+                    self.expect(Token::OpenBracket);
+                    let expr = self.expect_expr();
+                    self.expect(Token::CloseBracket);
+                    self.expect(Token::OpenScope);
+                    let if_statments = self.parse();
+                    let scope = NodeScope(if_statments);
+                    let chain = Box::new(self.parse_else());
+
+                    return Some(NodeElse::ElseIf { expr, scope, chain })
+                },
+
+
+                Token::Else => {
+                    self.tokens.pop_front();
+                    self.expect(Token::OpenScope);
+                    let if_statments = self.parse();
+                    let scope = NodeScope(if_statments);
+                    return Some(NodeElse::Else(scope))
+                },
+
+                _ => {
+                    return None;
+                },
+
+            }
+        }
+        None
+    }
+
+    fn parse(&mut self,) -> Vec<NodeStmt> {
 
         let mut stmts = vec![];
-        let mut tokens = &mut self.tokens;
-        while let Some(token) = tokens.pop_front() {
+        while let Some(token) = self.tokens.pop_front() {
             match token {
                 Token::Exit => {
-                    let open_token = tokens.pop_front().expect("( missing");
-
-                    if !matches!(open_token, Token::OpenBracket) {
-                        panic!("( missing but found {:?}", open_token);
-                    }
-
-                    if let Some(expr) = parse_expr(&mut tokens, 1) {
-                        stmts.push(NodeStmt::Exit { expr });
-                    } else {
-                        panic!("Expression Parsing Failed {:?}", tokens);
-                    }
-
-                    if let Some(element) = tokens.pop_front()  {
-                        if !matches!(element, Token::CloseBracket) {
-                            panic!(") missing but found {:?}", element);
-                        }
-                    } else {
-                        panic!(") missing ");
-                    }
-                    if let Some(element) = tokens.pop_front()  {
-                        if !matches!(element, Token::SemiColon) {
-                            panic!("; missing but found {:?}", element);
-                        }
-                    } else {
-                        panic!("; missing ");
-                    }
-
+                    self.expect(Token::OpenBracket);
+                    let expr = self.expect_expr();
+                    stmts.push(NodeStmt::Exit { expr });
+                    self.expect(Token::CloseBracket);
+                    self.expect(Token::SemiColon);
                 },
                 Token::Let => {
-                    let ident = tokens.pop_front().expect("identifier missing");
-                    tokens.pop_front().expect(" Equal Sign missing");
-
-                    if let Some(expr) = parse_expr(&mut tokens, 1) {
-                        stmts.push(NodeStmt::Let { expr , ident } );
-                    } else {
-                        panic!("Expression Parsing Failed");
-                    }
-
+                    let ident = self.tokens.pop_front().expect("identifier missing");
+                    self.expect(Token::Equal);
+                    let expr = self.expect_expr();
+                    stmts.push(NodeStmt::Let { expr , ident } );
                 },
+                Token::OpenScope => {
+                    let scoped_stmts = self.parse();
+                    stmts.push(NodeStmt::Scope { scope: NodeScope(scoped_stmts) });
+                }
+
+                Token::CloseScope => {
+                    return stmts;
+                }
+                Token::If => {
+                    self.expect(Token::OpenBracket);
+                    let expr = self.expect_expr();
+                    self.expect(Token::CloseBracket);
+                    self.expect(Token::OpenScope);
+                    let if_statments = self.parse();
+                    let scope = NodeScope(if_statments);
+                    let chain = self.parse_else();
+                    stmts.push(NodeStmt::If { expr, scope, chain });
+                },
+
+                Token::Indent(_) if self.peek_expect(0, Token::Equal) => {
+                    self.expect(Token::Equal);
+                    let expr = self.expect_expr();
+                    stmts.push(NodeStmt::ReAssign { expr , ident: token } );
+                },
+
                 _ => { continue; },
             }
         }
 
-        NodeRoot { stmts }
+        stmts
     }
     
 }
 pub fn parse(tokens: VecDeque<Token>) -> NodeRoot {
     let mut parser = Parser { tokens };
-    parser.parse()
+    let stmts = parser.parse();
+    NodeRoot { stmts }
 }
 
 

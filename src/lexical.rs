@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Exit,
     IntLiteral(String),
@@ -15,6 +15,11 @@ pub enum Token {
     Multiply,
     Subtract,
     Division,
+    OpenScope,
+    CloseScope,
+    If,
+    Else,
+    ElseIf,
 } 
 
 pub fn tokenize(content: &str) -> Vec<Token>{
@@ -41,7 +46,20 @@ pub fn tokenize(content: &str) -> Vec<Token>{
             else if temp == "exit" {
                 tokens.push(Token::Exit);
                 buffer.clear();
-            } else {
+            }
+            else if temp == "elif" {
+                tokens.push(Token::ElseIf);
+                buffer.clear();
+            }
+            else if temp == "if" {
+                tokens.push(Token::If);
+                buffer.clear();
+            }
+            else if temp == "else" {
+                tokens.push(Token::Else);
+                buffer.clear();
+            }
+            else {
                 tokens.push(Token::Indent(temp));
                 buffer.clear();
             }
@@ -60,6 +78,20 @@ pub fn tokenize(content: &str) -> Vec<Token>{
                 tokens.push(Token::IntLiteral(temp));
                 buffer.clear();
             }
+        }
+        else if char == '/' && is_next(&chars, '/') {
+            chars.pop_front();
+            while !chars.is_empty() && !is_next(&chars, '\n') {
+                chars.pop_front();
+            }
+        }
+        else if char == '/' && is_next(&chars, '*') {
+            chars.pop_front();
+            while !chars.is_empty() && !(is_next(&chars, '*') && peek(&chars, '/', 1)) {
+                chars.pop_front();
+            }
+            chars.pop_front();
+            chars.pop_front();
         }
         else if char == '=' {
             tokens.push(Token::Equal);
@@ -85,14 +117,36 @@ pub fn tokenize(content: &str) -> Vec<Token>{
         else if char == '*' {
             tokens.push(Token::Multiply);
         }
+        else if char == '{' {
+            tokens.push(Token::OpenScope);
+        }
+        else if char == '}' {
+            tokens.push(Token::CloseScope);
+        }
         else if char.is_whitespace() {
+
         }
         else {
-            panic!("Invalid Token");
+            panic!("Invalid Token {}", char);
         }
     }
 
     tokens
+}
+
+fn peek(chars: &VecDeque<char>, identifier: char, offset: usize) -> bool {
+    if let Some(ele) = chars.get(offset)  {
+        return *ele == identifier;
+    }
+    false
+}
+
+
+fn is_next(chars: &VecDeque<char>, identifier: char) -> bool {
+    if let Some(ele) = chars.front()  {
+        return *ele == identifier
+    }
+    false
 }
 
 

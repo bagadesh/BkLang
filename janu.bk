@@ -1,6 +1,18 @@
-let a = 10;
-let b = 20;
-let c = 30;
-let d = 2 + 2 * 5;
-let e = (10 - 2 * 3) / 2;
-exit(e);
+let x = 1;
+x = 2;
+x = x;
+/*
+if(x-0) {
+    let a = 5;
+}
+elif (x - 1) {
+    exit(2);
+}
+elif (x - 1) {
+    exit(3);
+}
+else {
+    exit(4);
+}
+*/
+exit(x);

@@ -28,26 +28,20 @@ fn main() -> Result<()> {
     let mut content = String::new();
     file.read_to_string(&mut content).context("Failed to read file content")?;
 
-    println!("contents {}", content);
-
+    println!("Lexical Analysis being performed...");
     let tokens = lexical::tokenize(&content);
-
-    for token in tokens.iter() {
-        println!("Token {:?}", token);
-    }
-
-    println!();
-    println!("Parsing started");
+    println!("Lexical Analysis Completed.\n");
+    println!("Parsing being performed...");
 
     let tokens = VecDeque::from(tokens);
     let nodes = parsing::parse(tokens);
-
+    println!("Parsing completed.");
     for node in nodes.stmts.iter() {
-        println!("Node {:?}", node);
+        println!("Node {:?}\n", node);
     }
 
     println!();
-    println!("Code Generation started");
+    println!("Code Generation being performed...");
 
     generate_code(nodes);
 
