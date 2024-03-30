@@ -21,7 +21,6 @@ if( x - 1 ) { // If consition with >=1 as true 0 as false
     //... contents
 }
 
-
 return x; // Return Statement
 
 ```
