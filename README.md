@@ -8,7 +8,7 @@ This repository containers blang compiler.
 let x = 10;  // Variable initialization
 x = 20; // Variable reassignment
 
-x = 10*10-2/2 + 20; // Add, Subtract, Multiply, Division
+x = 10 * 10 - 2 / 2 + 20; // Add, Subtract, Multiply, Division
 // Honor BOARDMAS Rule
 
 x = x * 2; // Expression parsinging with variables
