@@ -22,6 +22,6 @@ if( x - 1 ) { // If consition with >=1 as true 0 as false
 }
 
 
-exit(x); // Return Statement
+return x; // Return Statement
 
 ```

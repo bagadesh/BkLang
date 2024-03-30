@@ -50,15 +50,19 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                 tokens.push(TokenData { token: Token::Let, line: line_count });
                 buffer.clear();
             } 
-            else if temp == "exit" {
+            else if temp == "return" {
                 tokens.push(TokenData { token: Token::Exit, line: line_count });
                 buffer.clear();
             }
-            else if temp == "elif" {
-                tokens.push(TokenData { token: Token::ElseIf, line: line_count });
-                buffer.clear();
-            }
             else if temp == "if" {
+                if let Some(previous) = tokens.last() {
+                    if previous.token == Token::Else {
+                        tokens.pop();
+                        tokens.push(TokenData { token: Token::ElseIf, line: line_count });
+                        buffer.clear();
+                        continue;
+                    }
+                }
                 tokens.push(TokenData { token: Token::If, line: line_count });
                 buffer.clear();
             }

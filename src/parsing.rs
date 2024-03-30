@@ -138,10 +138,8 @@ impl Parser {
         while let Some(token) = self.tokens.pop_front() {
             match token.token {
                 Token::Exit => {
-                    self.expect(Token::OpenBracket);
                     let expr = self.expect_expr();
                     stmts.push(NodeStmt::Exit { expr });
-                    self.expect(Token::CloseBracket);
                     self.expect(Token::SemiColon);
                 },
                 Token::Let => {
