@@ -3,7 +3,7 @@
 This repository containers blang compiler.
 
 
-## BLang Documentation
+## BLang Syntax
 ```rust
 let x = 10;  // Variable initialization
 x = 20; // Variable reassignment
