@@ -24,3 +24,15 @@ if( x - 1 ) { // If consition with >=1 as true 0 as false
 return x; // Return Statement
 
 ```
+
+## Limitations
+
+- Supports only `Aarch64`. (Hand rolled it 😅)
+- No function support yet.
+- Supports only `int` type as default.
+
+
+If you haven't notified it is really a toy language for me to experiment.
+
+
+
