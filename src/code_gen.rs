@@ -53,7 +53,7 @@ impl Generator {
         self.scope_ident -= 1;
     }
 
-    fn insert_ident(&mut self, identifier: &String) {
+    fn insert_ident(&mut self, identifier: &String, line_number: i32) {
 
         let map = self.scope_map.get_mut(&self.scope_ident);
         if let Some(map) = map  {
@@ -61,6 +61,7 @@ impl Generator {
                 identifier.to_string(),
                 Var {
                     stack_location: self.m_stack_pointer,
+                    line_number,
                 }
             );
         } else {
@@ -69,6 +70,7 @@ impl Generator {
                 identifier.to_string(),
                 Var {
                     stack_location: self.m_stack_pointer,
+                    line_number,
                 }
             );
 
@@ -175,13 +177,14 @@ impl Generator {
     fn generate_stmt(&mut self, ele : &NodeStmt) {
         match ele {
             crate::parsing::NodeStmt::Let { expr, ident } => {
-                let identifier = cast!(ident, Token::Indent);
-                if self.get_variable(identifier).is_some() {
-                    panic!("Identifier already defined {}", identifier);
+                let identifier = cast!(&ident.token, Token::Indent);
+                let variable = self.get_variable(&identifier);
+                if let Some(variable) = variable {
+                    panic!("{} already defined at line {}", identifier, variable.line_number);
                 }
 
                 self.parse_expr(expr);
-                self.insert_ident(identifier);
+                self.insert_ident(&identifier, ident.line);
             }
             crate::parsing::NodeStmt::Exit { expr } => {
                 match expr {
@@ -217,8 +220,9 @@ impl Generator {
                 self.buffer.push(format!("{}:\n", normal_label));
             },
             NodeStmt::ReAssign { expr, ident } => {
-                let identifier = cast!(ident, Token::Indent);
-                let variable = self.get_variable(identifier).expect("Identifier not declared");
+                let identifier = cast!(&ident.token, Token::Indent);
+                let variable = self.get_variable(&identifier)
+                    .expect(&format!("{} not declared but used in line {}", identifier, ident.line));
                 // Let's mStackPos=10 and varStackPos=5
                 // offset=5*16=80 we need to go upwards to access memory
                 // Meaning we have to use -80 rather +80
@@ -270,6 +274,7 @@ impl Generator {
 #[derive(Debug)]
 struct Var {
     stack_location: usize,
+    line_number: i32,
 }
 
 pub fn generate_code(node_root: NodeRoot) {

@@ -36,9 +36,11 @@ fn main() -> Result<()> {
     let tokens = VecDeque::from(tokens);
     let nodes = parsing::parse(tokens);
     println!("Parsing completed.");
+/*
     for node in nodes.stmts.iter() {
         println!("Node {:?}\n", node);
     }
+*/
 
     println!();
     println!("Code Generation being performed...");

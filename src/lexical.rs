@@ -2,6 +2,12 @@ use std::collections::VecDeque;
 
 
 #[derive(Debug, PartialEq)]
+pub struct TokenData {
+    pub token: Token,
+    pub line: i32,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Exit,
     IntLiteral(String),
@@ -22,11 +28,12 @@ pub enum Token {
     ElseIf,
 } 
 
-pub fn tokenize(content: &str) -> Vec<Token>{
+pub fn tokenize(content: &str) -> Vec<TokenData>{
 
     let mut chars : VecDeque<_>= content.chars().collect();
     let mut tokens = vec![];
     let mut buffer = vec![];
+    let mut line_count = 1;
 
     while let Some(char) = chars.pop_front() {
         if char.is_alphabetic() {
@@ -40,27 +47,27 @@ pub fn tokenize(content: &str) -> Vec<Token>{
             }
             let temp: String = buffer.iter().collect();
             if temp == "let" {
-                tokens.push(Token::Let);
+                tokens.push(TokenData { token: Token::Let, line: line_count });
                 buffer.clear();
             } 
             else if temp == "exit" {
-                tokens.push(Token::Exit);
+                tokens.push(TokenData { token: Token::Exit, line: line_count });
                 buffer.clear();
             }
             else if temp == "elif" {
-                tokens.push(Token::ElseIf);
+                tokens.push(TokenData { token: Token::ElseIf, line: line_count });
                 buffer.clear();
             }
             else if temp == "if" {
-                tokens.push(Token::If);
+                tokens.push(TokenData { token: Token::If, line: line_count });
                 buffer.clear();
             }
             else if temp == "else" {
-                tokens.push(Token::Else);
+                tokens.push(TokenData { token: Token::Else, line: line_count });
                 buffer.clear();
             }
             else {
-                tokens.push(Token::Indent(temp));
+                tokens.push(TokenData { token: Token::Indent(temp),  line: line_count });
                 buffer.clear();
             }
         }
@@ -75,7 +82,7 @@ pub fn tokenize(content: &str) -> Vec<Token>{
                     }
                 }
                 let temp: String = buffer.iter().collect();
-                tokens.push(Token::IntLiteral(temp));
+                tokens.push(TokenData { token: Token::IntLiteral(temp), line: line_count });
                 buffer.clear();
             }
         }
@@ -94,37 +101,39 @@ pub fn tokenize(content: &str) -> Vec<Token>{
             chars.pop_front();
         }
         else if char == '=' {
-            tokens.push(Token::Equal);
+            tokens.push(TokenData { token: Token::Equal, line: line_count });
         }
         else if char == ';' {
-            tokens.push(Token::SemiColon);
+            tokens.push(TokenData { token: Token::SemiColon, line: line_count });
         }
         else if char == '(' {
-            tokens.push(Token::OpenBracket);
+            tokens.push(TokenData { token: Token::OpenBracket, line: line_count });
         }
         else if char == ')' {
-            tokens.push(Token::CloseBracket);
+            tokens.push(TokenData { token: Token::CloseBracket, line: line_count });
         }
         else if char == '+' {
-            tokens.push(Token::Add);
+            tokens.push(TokenData { token: Token::Add, line: line_count });
         }
         else if char == '-' {
-            tokens.push(Token::Subtract);
+            tokens.push(TokenData { token: Token::Subtract, line: line_count });
         }
         else if char == '/' {
-            tokens.push(Token::Division);
+            tokens.push(TokenData { token: Token::Division, line: line_count });
         }
         else if char == '*' {
-            tokens.push(Token::Multiply);
+            tokens.push(TokenData { token: Token::Multiply, line: line_count });
         }
         else if char == '{' {
-            tokens.push(Token::OpenScope);
+            tokens.push(TokenData { token: Token::OpenScope, line: line_count });
         }
         else if char == '}' {
-            tokens.push(Token::CloseScope);
+            tokens.push(TokenData { token: Token::CloseScope, line: line_count });
+        }
+        else if char == '\n' {
+            line_count += 1;
         }
         else if char.is_whitespace() {
-
         }
         else {
             panic!("Invalid Token {}", char);
