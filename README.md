@@ -13,7 +13,9 @@ fn main() -> i32 {
     x = 20; // Variable reassignment
     x = 10 * 10 - 2 / 2 + 20; // Add, Subtract, Multiply, Division. BODMAS Rule
     x = x * 2; // Expression parsinging with variables
-    return a + b; // Return Statement
+    let y = foo();
+    let z = bar();
+    return z + y; // Return Statement
 }
 
 fn foo() -> i32 {
@@ -25,6 +27,10 @@ fn foo() -> i32 {
         //... contents
     }
     return a + b; // Return Statement
+}
+
+fn bar() -> i32 {
+    return 100;
 }
 
 ```
