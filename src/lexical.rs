@@ -8,6 +8,12 @@ pub struct TokenData {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum LitKind {
+    Integer,
+    Bool,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Exit,
     IntLiteral(String),
@@ -26,6 +32,9 @@ pub enum Token {
     If,
     Else,
     ElseIf,
+    ReturnSig, // ->
+    FuncSig, // fn
+    LitType(LitKind),
 } 
 
 pub fn tokenize(content: &str) -> Vec<TokenData>{
@@ -70,6 +79,14 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                 tokens.push(TokenData { token: Token::Else, line: line_count });
                 buffer.clear();
             }
+            else if temp == "i32" {
+                tokens.push(TokenData { token: Token::LitType(LitKind::Integer), line: line_count });
+                buffer.clear();
+            }
+            else if temp == "fn" {
+                tokens.push(TokenData { token: Token::FuncSig, line: line_count });
+                buffer.clear();
+            }
             else {
                 tokens.push(TokenData { token: Token::Indent(temp),  line: line_count });
                 buffer.clear();
@@ -89,6 +106,10 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                 tokens.push(TokenData { token: Token::IntLiteral(temp), line: line_count });
                 buffer.clear();
             }
+        }
+        else if char == '-' && is_next(&chars, '>') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::ReturnSig, line: line_count });
         }
         else if char == '/' && is_next(&chars, '/') {
             chars.pop_front();

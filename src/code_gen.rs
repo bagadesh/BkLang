@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs::File, io::Write};
 
 use crate::{
     lexical::Token,
-    parsing::{NodeBiExpr, NodeElse, NodeExpr, NodeRoot, NodeScope, NodeStmt, NodeTermExpr},
+    parsing::{NodeBiExpr, NodeElse, NodeExpr, NodeFunc, NodeRoot, NodeScope, NodeStmt, NodeTermExpr},
 };
 
 #[derive(Debug)]
@@ -112,6 +112,11 @@ impl Generator {
             NodeExpr::Term(rhs_term) => {
                 self.parse_term(&rhs_term);
             }
+            NodeExpr::Call(f_name) => {
+                self.buffer.push(format!("MOV X29, X30\n"));
+                self.buffer.push(format!("BL _{}\n", f_name));
+                self.buffer.push(format!("MOV X30, X29\n"));
+            },
         }
     }
 
@@ -172,9 +177,30 @@ impl Generator {
 
 }
 
+// Statement
+
 impl Generator {
 
-    fn generate_stmt(&mut self, ele : &NodeStmt) {
+    fn gen_func(&mut self, func: &NodeFunc) {
+        let f_name = &func.f_name;
+        let stmts = &func.stmts;
+
+        if f_name == "main" {
+            self.buffer.push("_start:\n".to_owned());
+            for stmt in stmts  {
+                self.generate_stmt(stmt, true);
+            }
+            self.buffer.push(format!("mov X16, #1\n"));
+            self.buffer.push(format!("svc #0x80\n"));
+        } else {
+            self.buffer.push(format!("_{}:\n", f_name));
+            for stmt in stmts  {
+                self.generate_stmt(stmt, false);
+            }
+        }
+    }
+
+    fn generate_stmt(&mut self, ele : &NodeStmt, is_main: bool) {
         match ele {
             crate::parsing::NodeStmt::Let { expr, ident } => {
                 let identifier = cast!(&ident.token, Token::Indent);
@@ -186,20 +212,12 @@ impl Generator {
                 self.parse_expr(expr);
                 self.insert_ident(&identifier, ident.line);
             }
-            crate::parsing::NodeStmt::Exit { expr } => {
-                match expr {
-                    NodeExpr::BinaryExpr(binary_expr) => {
-                        self.parse_binary_expr(&binary_expr);
-                        self.pop("X0");
-                    }
-                    NodeExpr::Term(term) => {
-                        self.parse_term(&term);
-                        self.pop("X0");
-                    }
+            crate::parsing::NodeStmt::Return { expr } => {
+                self.parse_expr(expr);
+                self.pop("X0");
+                if !is_main {
+                    self.buffer.push("RET\n".to_owned());
                 }
-
-                self.buffer.push(format!("mov X16, #1\n"));
-                self.buffer.push(format!("svc #0x80\n"));
             },
             crate::parsing::NodeStmt::Scope { scope } => {
                 self.generate_scope(scope);
@@ -264,7 +282,7 @@ impl Generator {
         let scope_stmts = &scope.0;
         self.begin_scope();
         for scope_stmt in scope_stmts.into_iter() {
-            self.generate_stmt(scope_stmt);
+            self.generate_stmt(scope_stmt, false);
         }
         self.end_scope();
     }
@@ -278,7 +296,7 @@ struct Var {
 }
 
 pub fn generate_code(node_root: NodeRoot) {
-    let stmts = node_root.stmts;
+    let funcs = node_root.funcs;
     let output = File::create("out.s").expect("Failed to create file");
     let m_stack_pointer: usize = 0;
     let scope_ident : usize = 0;
@@ -294,10 +312,9 @@ pub fn generate_code(node_root: NodeRoot) {
 
     generator.buffer.push(".global _start\n".to_owned());
     generator.buffer.push(".align 2\n".to_owned());
-    generator.buffer.push("_start:\n".to_owned());
 
-    for ele in stmts {
-        generator.generate_stmt(&ele);
+    for ele in funcs {
+        generator.gen_func(&ele);
     }
 
     let buf: String = generator.buffer.into_iter().collect();

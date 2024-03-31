@@ -1,18 +1,15 @@
-let x = 1;
-x = 2;
-x = x;
-/*
-if(x-0) {
-    let a = 5;
+
+fn janu() -> i32 {
+    let j2 = bk();
+    let j1 = 1;
+    return j1;
 }
-elif (x - 1) {
-    exit(2);
+
+fn bk() -> i32 {
+    return 10;
 }
-elif (x - 1) {
-    exit(3);
+
+fn main() -> i32 {
+    let y = janu();
+    return y;
 }
-else {
-    exit(4);
-}
-*/
-exit(x);
