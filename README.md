@@ -26,7 +26,7 @@ fn foo() -> i32 {
     } else { // Else condition
         //... contents
     }
-    return a + b; // Return Statement
+    return bar(); // Function call inside function
 }
 
 fn bar() -> i32 {

@@ -1,4 +1,9 @@
 
+fn main() -> i32 {
+    let y = janu();
+    return y;
+}
+
 fn janu() -> i32 {
     let j2 = bk();
     let j1 = 1;
@@ -9,7 +14,3 @@ fn bk() -> i32 {
     return 10;
 }
 
-fn main() -> i32 {
-    let y = janu();
-    return y;
-}
