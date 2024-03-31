@@ -1,6 +1,6 @@
 # The BLang Programming Language
 
-This repository containers blang compiler.
+This repository contains blang compiler.
 
 
 ## BLang Syntax
