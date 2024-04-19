@@ -35,11 +35,15 @@ fn bar() -> i32 {
 
 ```
 
-## Limitations
+## Supported
 
 - Supports only `Aarch64`. (Hand rolled it 😅)
-- No function support yet.
 - Supports only `int` type as default.
+- Supports Function (without arguments)
+
+## Planning
+
+- Function Arguments
 
 
 If you haven't noticed it is really a toy language for me to experiment.

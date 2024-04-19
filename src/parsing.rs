@@ -141,28 +141,22 @@ impl Parser {
     fn parse_func(&mut self) -> Option<NodeFunc> {
         let name_token = self.tokens.pop_front()?.token;
         let fuc_name = cast!(&name_token, Token::Indent);
-        debug!("Function parsing started `{}`", fuc_name);
         self.expect(Token::OpenBracket);
         self.expect(Token::CloseBracket);
         self.expect(Token::ReturnSig);
         let ret_type = self.tokens.pop_front().map(|f| {
-            debug!("Given token {:?}", f.token);
             cast!(f.token, Token::LitType)
         });
         self.expect(Token::OpenScope);
         let stmts = self.parse_stmts();
-        debug!("Function parsing completed {}", fuc_name);
         Some(NodeFunc::new(fuc_name.to_owned(), stmts, ret_type))
     }
     
     fn parse_expr(&mut self, min_prec: i8) -> Option<NodeExpr> {
-        debug!("Parsing expression...");
-        
         if let Some(token) = self.peek(0) {
             if let Token::Indent(ident) = &token.token  {
                 if self.peek_expect(1, Token::OpenBracket)
                     && self.peek_expect(2, Token::CloseBracket) {
-                        debug!("Parsing call expression...");
                         let ident = ident.to_owned();
                         self.consume_count(3);
                         return Some(NodeExpr::Call(ident));
@@ -190,9 +184,7 @@ impl Parser {
 
 
     fn parse_term(&mut self) -> Option<NodeTermExpr> {
-        debug!("Parsing term...");
         if let Some(element) = self.tokens.front() {
-            debug!("Parsing term element {:?}", element);
             if let Token::IntLiteral(token) = &element.token {
                 let token = token.to_string();
                 self.tokens.pop_front().unwrap();
@@ -253,10 +245,8 @@ impl Parser {
     }
 
     fn parse_stmts(&mut self,) -> Vec<NodeStmt> {
-        tracing::debug!("Parser: parsing...");
         let mut stmts = vec![];
         while let Some(token) = self.tokens.pop_front() {
-            tracing::debug!("Parser: parsing {:?}", token);
             match token.token {
                 Token::Exit => {
                     let expr = self.expect_expr();
@@ -309,7 +299,6 @@ impl Parser {
 
     fn parse_file(&mut self) -> Vec<NodeFunc> {
 
-        debug!("Parsing file");
         let mut funcs = vec![];
 
         while let Some(token) = self.tokens.pop_front() {

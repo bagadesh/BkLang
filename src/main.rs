@@ -2,13 +2,15 @@ use std::{collections::VecDeque, io::Read};
 
 use anyhow::{Context, Ok, Result};
 use clap::Parser;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
-use crate::code_gen::generate_code;
 use tracing::debug;
 use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+
 mod lexical;
-mod code_gen;
+mod codegen;
 mod parsing;
 mod parse_validation;
 
@@ -20,13 +22,12 @@ struct Args {
 
 fn main() -> Result<()> {
 
-  // a builder for `FmtSubscriber`.
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
-        .finish();
+    let layer = tracing_subscriber::fmt::layer().pretty();
 
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing_subscriber::registry()
+        .with(layer)
+        .with(EnvFilter::from_default_env())
+        .init();
 
     let arg = Args::parse();
     let file_name = arg.file_name;
@@ -52,6 +53,7 @@ fn main() -> Result<()> {
 
     let tokens = VecDeque::from(tokens);
     let nodes = parsing::parse(tokens);
+
     info!("Parsing completed.\n");
 
     parse_validation::parse_validation(&nodes);
@@ -62,7 +64,7 @@ fn main() -> Result<()> {
 
     info!("Code Generation being performed...");
 
-    generate_code(nodes);
+    codegen::generate(nodes);
 
     info!("Code Generation Completed");
 

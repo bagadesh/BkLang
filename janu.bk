@@ -1,16 +1,25 @@
-
 fn main() -> i32 {
-    let y = janu();
-    return y;
+    /*
+    let a = 10;
+    if (a - 0) {
+        let c = 10;
+    } else {
+        let d = 20;
+    }
+    */
+    let x = 22;
+    let y = 23;
+    return janu();
 }
 
 fn janu() -> i32 {
-    let j2 = bk();
-    let j1 = 1;
-    return j1;
+    let y = 21;
+    let x = 2;
+    return foo();
 }
 
-fn bk() -> i32 {
-    return 10;
+fn foo() -> i32 {
+    return 11 + 22;
 }
+
 
