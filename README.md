@@ -42,6 +42,8 @@ fn bar() -> i32 {
 
 ## Planning
 
+- Boolean
+- If condition boolean check
 - Function Arguments
 
 

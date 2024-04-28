@@ -57,6 +57,11 @@ impl Generator {
                 self.buffer.push(format!("SDIV X1, X1, X2\n"));
                 self.push("X1");
             }
+            crate::parsing::NodeBiOp::Equality => {
+                // X1 has LHS value
+                // X2 has RHS values
+                self.buffer_push(&format!("SUBS X1, X1, X2"));
+            }
         }
     }
 
@@ -86,6 +91,16 @@ impl Generator {
             }
             NodeTermExpr::Expression(expr) => {
                 self.parse_expr(&expr);
+            }
+
+            NodeTermExpr::BooleanLiteral(value) => {
+                let value: i8 = if *value {
+                    1
+                } else {
+                    0
+                };
+                self.buffer_push(&format!("MOV X1, {}", value));
+                self.push("X1");
             }
         }
     }

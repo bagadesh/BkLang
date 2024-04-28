@@ -17,6 +17,7 @@ pub enum LitKind {
 pub enum Token {
     Exit,
     IntLiteral(String),
+    BooleanLiteral(bool),
     SemiColon,
     Let,
     Indent(String),
@@ -34,6 +35,7 @@ pub enum Token {
     ElseIf,
     ReturnSig, // ->
     FuncSig, // fn
+    Equality, // ==
     LitType(LitKind),
 } 
 
@@ -83,6 +85,10 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                 tokens.push(TokenData { token: Token::LitType(LitKind::Integer), line: line_count });
                 buffer.clear();
             }
+            else if temp == "bool" {
+                tokens.push(TokenData { token: Token::LitType(LitKind::Bool), line: line_count });
+                buffer.clear();
+            }
             else if temp == "fn" {
                 tokens.push(TokenData { token: Token::FuncSig, line: line_count });
                 buffer.clear();
@@ -103,7 +109,16 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                     }
                 }
                 let temp: String = buffer.iter().collect();
-                tokens.push(TokenData { token: Token::IntLiteral(temp), line: line_count });
+                if temp == "true" || temp == "false" {
+                    let value = if temp == "true" {
+                        true
+                    } else {
+                        false
+                    };
+                    tokens.push(TokenData { token: Token::BooleanLiteral(value), line: line_count });
+                } else {
+                    tokens.push(TokenData { token: Token::IntLiteral(temp), line: line_count });
+                }
                 buffer.clear();
             }
         }
@@ -116,6 +131,10 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
             while !chars.is_empty() && !is_next(&chars, '\n') {
                 chars.pop_front();
             }
+        }
+        else if char == '=' && is_next(&chars, '=') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::Equality, line: line_count });
         }
         else if char == '/' && is_next(&chars, '*') {
             chars.pop_front();

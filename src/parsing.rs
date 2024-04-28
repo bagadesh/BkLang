@@ -63,6 +63,7 @@ pub enum NodeExpr {
 #[derive(Debug)]
 pub enum NodeTermExpr {
    IntLiteral(String),
+   BooleanLiteral(bool),
    Identifier(String),
    Expression(Box<NodeExpr>),
 }
@@ -77,7 +78,7 @@ pub struct NodeBiExpr {
 
 #[derive(Debug)]
 pub enum NodeBiOp {
-    Add, Multiply, Subtract, Division,
+    Add, Multiply, Subtract, Division, Equality,
 }
 
 struct Parser {
@@ -185,6 +186,11 @@ impl Parser {
 
     fn parse_term(&mut self) -> Option<NodeTermExpr> {
         if let Some(element) = self.tokens.front() {
+            if let Token::BooleanLiteral(token) = &element.token {
+                let token = token.clone();
+                self.tokens.pop_front().unwrap();
+                return Some(NodeTermExpr::BooleanLiteral(token));
+            }
             if let Token::IntLiteral(token) = &element.token {
                 let token = token.to_string();
                 self.tokens.pop_front().unwrap();
