@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use crate::{
     lexical::Token,
     parsing::{
@@ -33,10 +35,8 @@ impl Generator {
                 self.generate_stmt(stmt);
             }
             self.end_func();
-            self.buffer.push(format!("mov X16, #1\n"));
-            self.buffer.push(format!("svc #0x80\n"));
         } else {
-            self.buffer.push(format!("_{}:\n", f_name));
+            self.buffer_push(&format!("_{}:", f_name));
             for stmt in stmts {
                 self.generate_stmt(stmt);
             }
@@ -66,25 +66,34 @@ impl Generator {
                 self.comment("Return stmt");
                 self.parse_expr(expr);
                 self.pop("X0");
+                self.end_func();
+                self.buffer_push(&format!("mov X16, #1"));
+                self.buffer_push(&format!("svc #0x80"));
             }
             crate::parsing::NodeStmt::Scope { scope } => {
                 self.generate_scope(scope);
             }
             NodeStmt::If { expr, scope, chain } => {
                 self.comment("If condition");
-                self.parse_expr(expr);
-                self.pop("X1");
+
+                // Normal is Rest of the code
+                // Next Label is Next condition like else if or else
                 let normal_label = self.create_label();
                 let next_label = self.create_label();
-                self.buffer.push(format!("cmp X1, 0\n"));
-                self.buffer.push(format!("b.eq {}\n", next_label));
+
+                self.parse_expr(expr);
+                self.pop("X1");
+                self.buffer_push(&format!("cmp X1, 0"));
+                self.buffer_push(&format!("b.eq {}", next_label));
+                self.comment("If scope generation start");
                 self.generate_scope(scope);
-                self.buffer.push(format!("MOV X2, 0\n"));
-                self.buffer.push(format!("cmp X2, 0\n"));
-                self.buffer.push(format!("b.eq {}\n", normal_label));
-                self.buffer.push(format!("{}:\n", next_label));
+                self.buffer_push(&format!("MOV X2, 0"));
+                self.buffer_push(&format!("cmp X2, 0"));
+                self.buffer_push(&format!("b.eq {}", normal_label));
+                self.buffer_push(&format!("{}:", next_label));
                 self.generate_node_else(&chain, &normal_label);
-                self.buffer.push(format!("{}:\n", normal_label));
+                self.comment("If condition finished");
+                self.buffer_push(&format!("{}:", normal_label));
             }
             NodeStmt::ReAssign { expr, ident } => {
                 let identifier = cast!(&ident.token, Token::Indent);
@@ -108,11 +117,14 @@ impl Generator {
         if let Some(node_else) = node_else {
             match node_else {
                 NodeElse::ElseIf { expr, scope, chain } => {
+                    let pointer = self.current_stack_pointer();
+                    self.comment(&format!("Else Compiler mStackPointer {}", pointer));
                     self.parse_expr(expr);
                     self.pop("X1");
                     let label = self.create_label();
                     self.buffer.push(format!("cmp X1, 0\n"));
                     self.buffer.push(format!("b.eq {}\n", label));
+                    self.comment("Else If scope generation start");
                     self.generate_scope(scope);
                     self.buffer.push(format!("MOV X2, 0\n"));
                     self.buffer.push(format!("cmp X2, 0\n"));
@@ -121,6 +133,7 @@ impl Generator {
                     self.generate_node_else(chain, normal_label);
                 }
                 NodeElse::Else(scope) => {
+                    self.comment("Else scope generation start");
                     self.generate_scope(scope);
                 }
             }
@@ -130,9 +143,13 @@ impl Generator {
     fn generate_scope(&mut self, scope: &NodeScope) {
         let scope_stmts = &scope.0;
         self.begin_scope();
+        let begin_stack_pointer = self.current_stack_pointer();
         for scope_stmt in scope_stmts.into_iter() {
             self.generate_stmt(scope_stmt);
         }
+        let current_stack_pointer = self.current_stack_pointer();
+        let difference = current_stack_pointer - begin_stack_pointer;
+        self.clear_stack(difference);
         self.end_scope();
     }
 }
@@ -141,8 +158,8 @@ pub fn generate_code(node_root: NodeRoot) {
     let funcs = node_root.funcs;
     let mut generator = Generator::new();
 
-    generator.buffer.push(".global _start\n".to_owned());
-    generator.buffer.push(".align 2\n".to_owned());
+    generator.buffer_push(&format!(".global _start"));
+    generator.buffer_push(&format!(".align 2"));
 
     for ele in funcs {
         generator.gen_func(&ele);

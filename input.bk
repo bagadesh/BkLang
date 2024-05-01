@@ -1,0 +1,35 @@
+
+
+
+
+fn main() -> i32 {
+    let a = 10;
+    let b = 11;
+    if(a == 0 && a == 10) {
+        let x1 = 10;
+        let xx1 = 20;
+        return a;
+    }
+    else if(a == 0) {
+        let x2 = 10;
+        let xy1 = 10;
+        let xxy1 = 20;
+        return 2;
+    }
+
+    return a;
+}
+
+/*
+
+fn janu() -> i32 {
+    let y = 21;
+    let x = 2;
+    return foo();
+}
+
+fn foo() -> i32 {
+    return 11 + 22;
+}
+
+*/

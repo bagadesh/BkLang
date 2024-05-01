@@ -33,12 +33,12 @@ impl Generator {
         self.parse_expr(&lhs);
         let lhs_pos = self.current_stack_pointer();
         self.parse_expr(&rhs);
-        let lhs_pos = self.current_stack_pointer() - lhs_pos;
-        let lhs_pos = lhs_pos * 16;
+        self.pop("X2");
+        self.pop("X1");
 
-        self.buffer
-            .push(format!("LDP X1, X2, [SP, #{}]\n", lhs_pos));
-        self.buffer.push(format!("LDP X2, X3, [SP]\n"));
+        //let lhs_pos = self.current_stack_pointer() - lhs_pos;
+
+        //self.pop_with_offset("X1", lhs_pos);
 
         match binary_expr.op {
             crate::parsing::NodeBiOp::Add => {
@@ -60,7 +60,40 @@ impl Generator {
             crate::parsing::NodeBiOp::Equality => {
                 // X1 has LHS value
                 // X2 has RHS values
+                // X1 will have result
+                // CSET will set X1 to 1 if previous operation has set ZERO flag
+                // eq will return 1 if previous operation result is 0.
                 self.buffer_push(&format!("SUBS X1, X1, X2"));
+                self.buffer_push(&format!("CSET X1, eq"));
+                self.push("X1");
+                self.comment("Equality finsihed");
+            }
+            crate::parsing::NodeBiOp::OR => {
+                // X1 (LHS) has 1 or 0
+                // X2 (RHS) has 1 or 0
+                //
+                // MOV X0, #0  ; W0 = 10 (true)
+                self.buffer_push(&format!("MOV X0, #0"));
+                self.buffer_push(&format!("CMN X1, X2"));
+                self.buffer_push(&format!("CSET X0, NE"));
+                self.buffer_push(&format!("ORR X0, X0, X2"));
+
+                self.push("X0");
+                self.comment("OR finsihed");
+            }
+            crate::parsing::NodeBiOp::AND => {
+
+                self.buffer_push(&format!("MOV X3, #0"));
+                self.buffer_push(&format!("MOV X4, #0"));
+
+                self.buffer_push(&format!("CMN X1, X2"));
+                self.buffer_push(&format!("CSET X3, NE"));
+                self.buffer_push(&format!("CMN X1, X1"));
+                self.buffer_push(&format!("CSET X4, NE"));
+                self.buffer_push(&format!("AND X3, X3, X4"));
+
+                self.push("X3");
+                self.comment("AND finsihed");
             }
         }
     }

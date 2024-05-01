@@ -82,12 +82,18 @@ impl Generator {
         let e = self.fn_scope_map.entry(self.m_func_name.to_string());
         let local_scopes = e.or_insert_with(|| LocalScopes::new());
         local_scopes.m_stack_pointer += 1;
+
+        let pointer = local_scopes.m_stack_pointer;
+        self.comment(&format!("Compiler mStackPointer {}", pointer));
     }
 
     pub fn decrease_stack_pointer(&mut self) {
         let e = self.fn_scope_map.entry(self.m_func_name.to_string());
         let local_scopes = e.or_insert_with(|| LocalScopes::new());
         local_scopes.m_stack_pointer -= 1;
+
+        let pointer = local_scopes.m_stack_pointer;
+        self.comment(&format!("Compiler mStackPointer {}", pointer));
     }
 
     pub fn current_stack_pointer(&self) -> usize {

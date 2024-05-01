@@ -78,7 +78,7 @@ pub struct NodeBiExpr {
 
 #[derive(Debug)]
 pub enum NodeBiOp {
-    Add, Multiply, Subtract, Division, Equality,
+    Add, Multiply, Subtract, Division, Equality, OR, AND,
 }
 
 struct Parser {
@@ -119,7 +119,7 @@ impl Parser {
     fn expect(&mut self ,token: Token) -> Token {
         if let Some(found) = self.tokens.pop_front()  {
             if found.token != token {
-                panic!("Missing {:?} at line {}", token, found.line);
+                panic!("Missing {:?} at line {} but found {:?}", token, found.line, found.token);
             }
             return found.token;
         }
@@ -331,7 +331,8 @@ pub fn parse(tokens: VecDeque<TokenData>) -> NodeRoot {
 fn is_binary_operator(token: &Token) -> bool {
     match token {
         Token::Multiply | Token::Add 
-            | Token::Subtract | Token::Division => true,
+        | Token::Subtract | Token::Division |
+        Token::AND | Token::OR | Token::Equality => true,
 
         _ => false,
     }
@@ -343,6 +344,9 @@ fn operator_to_binary_op(token: &Token) -> NodeBiOp  {
         Token::Multiply => NodeBiOp::Multiply,
         Token::Subtract => NodeBiOp::Subtract,
         Token::Division => NodeBiOp::Division,
+        Token::Equality => NodeBiOp::Equality,
+        Token::OR => NodeBiOp::OR,
+        Token::AND => NodeBiOp::AND,
         _ => unreachable!()
     }
 }

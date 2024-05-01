@@ -36,6 +36,8 @@ pub enum Token {
     ReturnSig, // ->
     FuncSig, // fn
     Equality, // ==
+    OR, // ||
+    AND, // &&
     LitType(LitKind),
 } 
 
@@ -136,6 +138,14 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
             chars.pop_front();
             tokens.push(TokenData { token: Token::Equality, line: line_count });
         }
+        else if char == '|' && is_next(&chars, '|') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::OR, line: line_count });
+        }
+        else if char == '&' && is_next(&chars, '&') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::AND, line: line_count });
+        }
         else if char == '/' && is_next(&chars, '*') {
             chars.pop_front();
             while !chars.is_empty() && !(is_next(&chars, '*') && peek(&chars, '/', 1)) {
@@ -209,6 +219,9 @@ pub fn binary_precendence(token: &Token) -> i8 {
         Token::Subtract => 1, 
         Token::Multiply => 2, 
         Token::Division => 2, 
+        Token::Equality => 2, 
+        Token::OR => 1, 
+        Token::AND => 1, 
         _ => unreachable!()
     }
 }
