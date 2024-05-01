@@ -18,9 +18,9 @@ fn main() -> i32 {
 
 fn foo() -> i32 {
     let x = 20;
-    if( x - 1 ) { // If consition with >=1 as true 0 as false
+    if( x == 20 ) { // If condition with >=1 as true 0 as false
         //... contents
-    } else if( x + 1 ) { // else if condition 
+    } else if( x + 1 == 11 ) { // else if condition 
         //... contents 
     } else { // Else condition
         //... contents
@@ -39,11 +39,10 @@ fn bar() -> i32 {
 - Supports only `Aarch64`. (Hand rolled it 😅)
 - Supports only `int` type as default.
 - Supports Function (without arguments)
+- Supports boolean evaluation (In If confition)
 
 ## Planning
 
-- Boolean
-- If condition boolean check
 - Function Arguments
 
 
