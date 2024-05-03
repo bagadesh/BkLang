@@ -1,5 +1,3 @@
-use std::process::Command;
-
 use crate::{
     lexical::Token,
     parsing::{

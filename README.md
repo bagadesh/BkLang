@@ -18,9 +18,9 @@ fn main() -> i32 {
 
 fn foo() -> i32 {
     let x = 20;
-    if( x == 20 ) { // If condition with >=1 as true 0 as false
+    if( x == 20 || x < 10 && x <= 10 ) { // If condition with >=1 as true 0 as false
         //... contents
-    } else if( x + 1 == 11 ) { // else if condition 
+    } else if( x + 1 == 11 || x > 10 && x >= 10) { // else if condition 
         //... contents 
     } else { // Else condition
         //... contents
@@ -40,10 +40,14 @@ fn bar() -> i32 {
 - Supports only `int` type as default.
 - Supports Function (without arguments)
 - Supports boolean evaluation (In If confition)
+- Supports `<, <=, >, >='
 
 ## Planning
 
+- structs
 - Function Arguments
+- Heap allocation
+- Strings
 
 
 If you haven't noticed it is really a toy language for me to experiment.

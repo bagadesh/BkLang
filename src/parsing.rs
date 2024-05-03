@@ -79,25 +79,15 @@ pub struct NodeBiExpr {
 #[derive(Debug)]
 pub enum NodeBiOp {
     Add, Multiply, Subtract, Division, Equality, OR, AND,
+    GreaterThan, LessThan, LessThanEqual, GreaterThanEqual,
 }
 
 struct Parser {
     tokens: VecDeque<TokenData>,
 } 
 
-impl Parser {
-
-    fn new(tokens: VecDeque<TokenData>) -> Parser {
-        Parser { tokens }
-    }
-
-}
 
 impl Parser {
-
-    fn consume(&mut self) {
-        self.tokens.pop_front();
-    }
 
     fn consume_count(&mut self, count : usize) {
         for _ in 0..count  {
@@ -277,6 +267,7 @@ impl Parser {
                 Token::If => {
                     self.expect(Token::OpenBracket);
                     let expr = self.expect_expr();
+                    debug!("Parsing If condition {:?}", expr);
                     self.expect(Token::CloseBracket);
                     self.expect(Token::OpenScope);
                     let if_statments = self.parse_stmts();
@@ -333,8 +324,27 @@ fn is_binary_operator(token: &Token) -> bool {
         Token::Multiply | Token::Add 
         | Token::Subtract | Token::Division |
         Token::AND | Token::OR | Token::Equality => true,
-
-        _ => false,
+        Token::GreaterThan => true,
+        Token::LessThan => true,
+        Token::GreaterThanEqual => true,
+        Token::LessThanEqual => true,
+        Token::Exit => false,
+        Token::IntLiteral(_) => false,
+        Token::BooleanLiteral(_) => false,
+        Token::SemiColon => false,
+        Token::Let => false,
+        Token::Indent(_) => false,
+        Token::Equal => false,
+        Token::OpenBracket => false,
+        Token::CloseBracket => false,
+        Token::OpenScope => false,
+        Token::CloseScope => false,
+        Token::If => false,
+        Token::Else => false,
+        Token::ElseIf => false,
+        Token::ReturnSig => false,
+        Token::FuncSig => false,
+        Token::LitType(_) => false,
     }
 }
 
@@ -347,6 +357,26 @@ fn operator_to_binary_op(token: &Token) -> NodeBiOp  {
         Token::Equality => NodeBiOp::Equality,
         Token::OR => NodeBiOp::OR,
         Token::AND => NodeBiOp::AND,
-        _ => unreachable!()
+        Token::GreaterThan => NodeBiOp::GreaterThan,
+        Token::LessThan => NodeBiOp::LessThan,
+        Token::GreaterThanEqual => NodeBiOp::GreaterThanEqual,
+        Token::LessThanEqual => NodeBiOp::LessThanEqual,
+        Token::Exit => unreachable!(),
+        Token::IntLiteral(_) => unreachable!(),
+        Token::BooleanLiteral(_) => unreachable!(),
+        Token::SemiColon => unreachable!(),
+        Token::Let => unreachable!(),
+        Token::Indent(_) => unreachable!(),
+        Token::Equal => unreachable!(),
+        Token::OpenBracket => unreachable!(),
+        Token::CloseBracket => unreachable!(),
+        Token::OpenScope => unreachable!(),
+        Token::CloseScope => unreachable!(),
+        Token::If => unreachable!(),
+        Token::Else => unreachable!(),
+        Token::ElseIf => unreachable!(),
+        Token::ReturnSig => unreachable!(),
+        Token::FuncSig => unreachable!(),
+        Token::LitType(_) => unreachable!(),
     }
 }

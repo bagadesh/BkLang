@@ -36,6 +36,10 @@ pub enum Token {
     ReturnSig, // ->
     FuncSig, // fn
     Equality, // ==
+    GreaterThan, // >
+    GreaterThanEqual, // >=
+    LessThan, // <
+    LessThanEqual, // <=
     OR, // ||
     AND, // &&
     LitType(LitKind),
@@ -123,6 +127,22 @@ pub fn tokenize(content: &str) -> Vec<TokenData>{
                 }
                 buffer.clear();
             }
+        }
+        else if char == '<' && is_next(&chars, '=') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::LessThanEqual, line: line_count });
+        }
+        else if char == '<' {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::LessThan, line: line_count });
+        }
+        else if char == '>' && is_next(&chars, '=') {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::GreaterThanEqual, line: line_count });
+        }
+        else if char == '>' {
+            chars.pop_front();
+            tokens.push(TokenData { token: Token::GreaterThan, line: line_count });
         }
         else if char == '-' && is_next(&chars, '>') {
             chars.pop_front();
@@ -222,6 +242,26 @@ pub fn binary_precendence(token: &Token) -> i8 {
         Token::Equality => 2, 
         Token::OR => 1, 
         Token::AND => 1, 
-        _ => unreachable!()
+        Token::GreaterThan => 1,
+        Token::LessThan => 1,
+        Token::GreaterThanEqual => 1,
+        Token::LessThanEqual => 1,
+        Token::Exit => unreachable!(),
+        Token::IntLiteral(_) => unreachable!(),
+        Token::BooleanLiteral(_) => unreachable!(),
+        Token::SemiColon => unreachable!(),
+        Token::Let => unreachable!(),
+        Token::Indent(_) => unreachable!(),
+        Token::Equal => unreachable!(),
+        Token::OpenBracket => unreachable!(),
+        Token::CloseBracket => unreachable!(),
+        Token::OpenScope => unreachable!(),
+        Token::CloseScope => unreachable!(),
+        Token::If => unreachable!(),
+        Token::Else => unreachable!(),
+        Token::ElseIf => unreachable!(),
+        Token::ReturnSig => unreachable!(),
+        Token::FuncSig => unreachable!(),
+        Token::LitType(_) => unreachable!(),
     }
 }

@@ -95,6 +95,30 @@ impl Generator {
                 self.push("X3");
                 self.comment("AND finsihed");
             }
+            crate::parsing::NodeBiOp::GreaterThan => {
+                self.buffer_push(&format!("CMP X1, X2"));
+                self.buffer_push(&format!("CSET X1, gt"));
+                self.push("X1");
+                self.comment("Greater than finsihed");
+            },
+            crate::parsing::NodeBiOp::LessThan => {
+                self.buffer_push(&format!("CMP X1, X2"));
+                self.buffer_push(&format!("CSET X1, lt"));
+                self.push("X1");
+                self.comment("Less than finsihed");
+            },
+            crate::parsing::NodeBiOp::LessThanEqual => {
+                self.buffer_push(&format!("CMP X1, X2"));
+                self.buffer_push(&format!("CSET X1, le"));
+                self.push("X1");
+                self.comment("Less than Equal finsihed");
+            },
+            crate::parsing::NodeBiOp::GreaterThanEqual => {
+                self.buffer_push(&format!("CMP X1, X2"));
+                self.buffer_push(&format!("CSET X1, ge"));
+                self.push("X1");
+                self.comment("Greater than Equal finsihed");
+            },
         }
     }
 
