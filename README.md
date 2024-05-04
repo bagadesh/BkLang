@@ -52,5 +52,16 @@ fn bar() -> i32 {
 
 If you haven't noticed it is really a toy language for me to experiment.
 
+## Grammer
+- `Term` > `Ident`| `IntLiteral` |  `Expr` | `BooleanLiteral`
+- `Expr` > `Term` | `BinaryExpr` | `Call`
+- `Call` > `FnCall`
+- `BinaryExpr`
+	- `lhs` > `Expr`
+	- `rhs` > `Expr`
+	- `operator` > `BinaryOp`
+- `BinaryOp` > `Add` | `Multiple` | `Subtract` | `Division` | `Equality`
+
+
 
 
